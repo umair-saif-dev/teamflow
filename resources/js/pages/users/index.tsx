@@ -14,7 +14,7 @@ export default function UsersIndex({ users }: { users: { data: User[] } }) {
             <div className="space-y-4 p-4">
                 <h1 className="text-2xl font-semibold">Team Members</h1>
                 <div className="rounded-lg border">
-                    {users.data.map((user) => (
+                    {(users?.data ?? []).map((user) => (
                         <div key={user.id} className="flex items-center justify-between border-b p-4 last:border-b-0">
                             <div>
                                 <p className="font-medium">{user.name}</p>

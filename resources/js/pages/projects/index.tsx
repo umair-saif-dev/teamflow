@@ -13,7 +13,7 @@ type PaginatedProjects = {
 };
 
 export default function ProjectsIndex({ projects }: { projects: PaginatedProjects }) {
-    const { all, total } = useProjects(projects.data);
+    const { all, total } = useProjects(projects?.data ?? []);
 
     return (
         <AppLayout breadcrumbs={[{ title: 'Projects', href: '/projects' }]}>

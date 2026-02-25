@@ -21,11 +21,26 @@ class ProjectResource extends JsonResource
                 'name' => $this->owner->name,
                 'email' => $this->owner->email,
             ]),
-            'members' => $this->whenLoaded('members', fn () => $this->members->map(fn ($member): array => [
-                'id' => $member->id,
-                'name' => $member->name,
-                'email' => $member->email,
-            ])),
+            'members' => $this->relationLoaded('members')
+                ? $this->members->map(fn ($member): array => [
+                    'id' => $member->id,
+                    'name' => $member->name,
+                    'email' => $member->email,
+                ])->values()
+                : [],
+            'tasks' => $this->relationLoaded('tasks')
+                ? $this->tasks->map(fn ($task): array => [
+                    'id' => $task->id,
+                    'title' => $task->title,
+                    'status' => $task->status,
+                ])->values()
+                : [],
+            'docs' => $this->relationLoaded('docs')
+                ? $this->docs->map(fn ($doc): array => [
+                    'id' => $doc->id,
+                    'title' => $doc->title,
+                ])->values()
+                : [],
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

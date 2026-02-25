@@ -15,7 +15,7 @@ export default function EditProject({ project, members }: { project: Project; me
     const { data, setData, put, processing, errors } = useForm({
         name: project.name,
         description: project.description ?? '',
-        member_ids: project.members.map((member) => member.id),
+        member_ids: (project.members ?? []).map((member) => member.id),
     });
 
     return (
@@ -59,7 +59,7 @@ export default function EditProject({ project, members }: { project: Project; me
                             setData('member_ids', selected);
                         }}
                     >
-                        {members.map((member) => (
+                        {(members ?? []).map((member) => (
                             <option key={member.id} value={member.id}>
                                 {member.name}
                             </option>

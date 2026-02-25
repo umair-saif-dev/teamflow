@@ -28,7 +28,7 @@ export default function ProjectShow({ project }: { project: Project }) {
                 <section>
                     <h2 className="mb-2 text-lg font-medium">Members</h2>
                     <div className="flex flex-wrap gap-2">
-                        {project.members.map((member) => (
+                        {(project.members ?? []).map((member) => (
                             <span key={member.id} className="rounded-full bg-accent px-3 py-1 text-sm">
                                 {member.name}
                             </span>
@@ -39,7 +39,7 @@ export default function ProjectShow({ project }: { project: Project }) {
                 <section>
                     <h2 className="mb-2 text-lg font-medium">Tasks</h2>
                     <ul className="space-y-1 text-sm text-muted-foreground">
-                        {project.tasks.map((task) => (
+                        {(project.tasks ?? []).map((task) => (
                             <li key={task.id}>
                                 {task.title} · {task.status}
                             </li>
@@ -50,7 +50,7 @@ export default function ProjectShow({ project }: { project: Project }) {
                 <section>
                     <h2 className="mb-2 text-lg font-medium">Docs</h2>
                     <ul className="space-y-1 text-sm text-muted-foreground">
-                        {project.docs.map((doc) => (
+                        {(project.docs ?? []).map((doc) => (
                             <li key={doc.id}>{doc.title}</li>
                         ))}
                     </ul>

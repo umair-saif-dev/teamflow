@@ -52,7 +52,7 @@ export default function CreateProject({ members }: { members: Member[] }) {
                             setData('member_ids', selected);
                         }}
                     >
-                        {members.map((member) => (
+                        {(members ?? []).map((member) => (
                             <option key={member.id} value={member.id}>
                                 {member.name}
                             </option>

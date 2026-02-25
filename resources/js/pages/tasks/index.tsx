@@ -18,11 +18,11 @@ type Project = { id: number; name: string };
 const columns: Array<Task['status']> = ['todo', 'in_progress', 'review', 'done'];
 
 export default function TasksIndex({ tasks, projects }: { tasks: { data: Task[] }; projects: Project[] }) {
-    const { byStatus } = useTasks(tasks.data);
+    const { byStatus } = useTasks(tasks?.data ?? []);
     const [search, setSearch] = useState('');
 
     const { data, setData, post, processing, reset } = useForm({
-        project_id: projects[0]?.id ?? 0,
+        project_id: projects?.[0]?.id ?? 0,
         title: '',
         description: '',
         status: 'todo' as Task['status'],
@@ -70,7 +70,7 @@ export default function TasksIndex({ tasks, projects }: { tasks: { data: Task[] 
                     }}
                 >
                     <select className="rounded-md border px-3 py-2" value={data.project_id} onChange={(event) => setData('project_id', Number(event.target.value))}>
-                        {projects.map((project) => (
+                        {(projects ?? []).map((project) => (
                             <option key={project.id} value={project.id}>
                                 {project.name}
                             </option>

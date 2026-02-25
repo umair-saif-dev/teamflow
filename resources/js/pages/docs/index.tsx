@@ -12,10 +12,10 @@ type Doc = {
 type Project = { id: number; name: string };
 
 export default function DocsIndex({ docs, projects }: { docs: { data: Doc[] }; projects: Project[] }) {
-    const { all } = useDocs(docs.data);
+    const { all } = useDocs(docs?.data ?? []);
 
     const { data, setData, post, processing, reset } = useForm({
-        project_id: projects[0]?.id ?? 0,
+        project_id: projects?.[0]?.id ?? 0,
         title: '',
         content: '',
     });
@@ -34,7 +34,7 @@ export default function DocsIndex({ docs, projects }: { docs: { data: Doc[] }; p
                     }}
                 >
                     <select className="rounded-md border px-3 py-2" value={data.project_id} onChange={(event) => setData('project_id', Number(event.target.value))}>
-                        {projects.map((project) => (
+                        {(projects ?? []).map((project) => (
                             <option key={project.id} value={project.id}>
                                 {project.name}
                             </option>

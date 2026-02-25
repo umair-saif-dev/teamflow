@@ -22,7 +22,7 @@ export default function Dashboard({ analytics }: { analytics: Analytics }) {
                         <p className="text-sm text-muted-foreground">Tasks</p>
                         <p className="text-2xl font-semibold">{analytics.totalTasks}</p>
                     </div>
-                    {Object.entries(analytics.tasksByStatus).map(([status, total]) => (
+                    {Object.entries(analytics?.tasksByStatus ?? {}).map(([status, total]) => (
                         <div key={status} className="rounded-lg border p-4">
                             <p className="text-sm capitalize text-muted-foreground">{status.replace('_', ' ')}</p>
                             <p className="text-2xl font-semibold">{total}</p>
@@ -33,7 +33,7 @@ export default function Dashboard({ analytics }: { analytics: Analytics }) {
                 <div className="rounded-lg border p-4">
                     <h2 className="mb-4 text-lg font-semibold">Project Progress</h2>
                     <div className="space-y-3">
-                        {analytics.projectProgress.map((project) => (
+                        {(analytics?.projectProgress ?? []).map((project) => (
                             <div key={project.id}>
                                 <div className="mb-1 flex items-center justify-between text-sm">
                                     <Link href={`/projects/${project.id}`} className="font-medium hover:underline">
