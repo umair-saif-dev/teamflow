@@ -1,34 +1,52 @@
-import { Head } from '@inertiajs/react';
-import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 import AppLayout from '@/layouts/app-layout';
-import type { BreadcrumbItem } from '@/types';
-import { dashboard } from '@/routes';
+import { Head, Link } from '@inertiajs/react';
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Dashboard',
-        href: dashboard().url,
-    },
-];
+type Analytics = {
+    totalProjects: number;
+    totalTasks: number;
+    tasksByStatus: Record<string, number>;
+    projectProgress: Array<{ id: number; name: string; progress: number }>;
+};
 
-export default function Dashboard() {
+export default function Dashboard({ analytics }: { analytics: Analytics }) {
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <AppLayout breadcrumbs={[{ title: 'Dashboard', href: '/dashboard' }]}>
             <Head title="Dashboard" />
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-                <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-                    <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                        <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
+            <div className="space-y-6 p-4">
+                <div className="grid gap-4 md:grid-cols-4">
+                    <div className="rounded-lg border p-4">
+                        <p className="text-sm text-muted-foreground">Projects</p>
+                        <p className="text-2xl font-semibold">{analytics.totalProjects}</p>
                     </div>
-                    <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                        <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
+                    <div className="rounded-lg border p-4">
+                        <p className="text-sm text-muted-foreground">Tasks</p>
+                        <p className="text-2xl font-semibold">{analytics.totalTasks}</p>
                     </div>
-                    <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                        <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-                    </div>
+                    {Object.entries(analytics.tasksByStatus).map(([status, total]) => (
+                        <div key={status} className="rounded-lg border p-4">
+                            <p className="text-sm capitalize text-muted-foreground">{status.replace('_', ' ')}</p>
+                            <p className="text-2xl font-semibold">{total}</p>
+                        </div>
+                    ))}
                 </div>
-                <div className="relative min-h-[100vh] flex-1 overflow-hidden rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
-                    <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
+
+                <div className="rounded-lg border p-4">
+                    <h2 className="mb-4 text-lg font-semibold">Project Progress</h2>
+                    <div className="space-y-3">
+                        {analytics.projectProgress.map((project) => (
+                            <div key={project.id}>
+                                <div className="mb-1 flex items-center justify-between text-sm">
+                                    <Link href={`/projects/${project.id}`} className="font-medium hover:underline">
+                                        {project.name}
+                                    </Link>
+                                    <span>{project.progress}%</span>
+                                </div>
+                                <div className="h-2 rounded bg-muted">
+                                    <div className="h-full rounded bg-primary" style={{ width: `${project.progress}%` }} />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
         </AppLayout>

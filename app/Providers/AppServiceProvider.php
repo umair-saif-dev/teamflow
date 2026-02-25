@@ -2,33 +2,39 @@
 
 namespace App\Providers;
 
+use App\Enums\Permission;
+use App\Models\Doc;
+use App\Models\Project;
+use App\Models\Task;
+use App\Policies\DocPolicy;
+use App\Policies\ProjectPolicy;
+use App\Policies\TaskPolicy;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
         //
     }
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
         $this->configureDefaults();
+
+        Gate::policy(Project::class, ProjectPolicy::class);
+        Gate::policy(Task::class, TaskPolicy::class);
+        Gate::policy(Doc::class, DocPolicy::class);
+
+        Gate::define(Permission::DashboardView->value, fn ($user): bool => $user->hasPermissionTo(Permission::DashboardView->value));
+        Gate::define(Permission::UserViewAny->value, fn ($user): bool => $user->hasPermissionTo(Permission::UserViewAny->value));
     }
 
-    /**
-     * Configure default behaviors for production-ready applications.
-     */
     protected function configureDefaults(): void
     {
         Date::use(CarbonImmutable::class);
