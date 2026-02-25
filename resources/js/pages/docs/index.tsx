@@ -1,6 +1,6 @@
 import AppLayout from '@/layouts/app-layout';
 import { useDocs } from '@/hooks/use-docs';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 
 type Doc = {
     id: number;
@@ -11,7 +11,7 @@ type Doc = {
 
 type Project = { id: number; name: string };
 
-export default function DocsIndex({ docs, projects }: { docs: { data: Doc[] }; projects: Project[] }) {
+export default function DocsIndex({ docs, projects, filters }: { docs: { data: Doc[] }; projects: Project[]; filters?: { search?: string } }) {
     const { all } = useDocs(docs?.data ?? []);
 
     const { data, setData, post, processing, reset } = useForm({
@@ -24,7 +24,15 @@ export default function DocsIndex({ docs, projects }: { docs: { data: Doc[] }; p
         <AppLayout breadcrumbs={[{ title: 'Docs', href: '/docs' }]}>
             <Head title="Docs" />
             <div className="space-y-6 p-4">
-                <h1 className="text-2xl font-semibold">Project Docs</h1>
+                <div className="flex items-center justify-between gap-2">
+                    <h1 className="text-2xl font-semibold">Project Docs</h1>
+                    <input
+                        className="rounded-md border px-3 py-2"
+                        defaultValue={filters?.search ?? ''}
+                        placeholder="Search docs"
+                        onChange={(event) => router.get('/docs', { search: event.target.value }, { preserveState: true, replace: true })}
+                    />
+                </div>
 
                 <form
                     className="grid gap-3 rounded-lg border p-4 md:grid-cols-4"

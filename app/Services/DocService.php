@@ -9,28 +9,40 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class DocService
 {
-    public function __construct(private readonly DocRepository $docRepository) {}
+    public function __construct(
+        private readonly DocRepository $docRepository,
+        private readonly ActivityLogService $activityLogService,
+    ) {}
 
-    public function listForUser(User $user): LengthAwarePaginator
+    public function listForUser(User $user, array $filters = []): LengthAwarePaginator
     {
-        return $this->docRepository->paginateForUser($user);
+        return $this->docRepository->paginateForUser($user, $filters);
     }
 
     public function create(User $user, array $data): Doc
     {
-        return $this->docRepository->create([
+        $doc = $this->docRepository->create([
             ...$data,
             'created_by' => $user->id,
         ])->load(['project:id,name', 'author:id,name,email']);
+
+        $this->activityLogService->log($user, 'doc.created', 'Created doc '.$doc->title, $doc);
+
+        return $doc;
     }
 
-    public function update(Doc $doc, array $data): Doc
+    public function update(User $user, Doc $doc, array $data): Doc
     {
-        return $this->docRepository->update($doc, $data)->load(['project:id,name', 'author:id,name,email']);
+        $updated = $this->docRepository->update($doc, $data)->load(['project:id,name', 'author:id,name,email']);
+
+        $this->activityLogService->log($user, 'doc.updated', 'Updated doc '.$updated->title, $updated);
+
+        return $updated;
     }
 
-    public function delete(Doc $doc): void
+    public function delete(User $user, Doc $doc): void
     {
+        $this->activityLogService->log($user, 'doc.deleted', 'Deleted doc '.$doc->title, $doc);
         $this->docRepository->delete($doc);
     }
 }

@@ -8,7 +8,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class DocRepository
 {
-    public function paginateForUser(User $user): LengthAwarePaginator
+    public function paginateForUser(User $user, array $filters = []): LengthAwarePaginator
     {
         $query = Doc::query()->with(['project:id,name,owner_id', 'author:id,name,email']);
 
@@ -20,7 +20,14 @@ class DocRepository
             });
         }
 
-        return $query->latest()->paginate(15);
+        if (! empty($filters['search'])) {
+            $search = strtolower((string) $filters['search']);
+            $query->where(fn ($q) => $q
+                ->whereRaw('LOWER(title) like ?', ["%{$search}%"])
+                ->orWhereRaw('LOWER(content) like ?', ["%{$search}%"]));
+        }
+
+        return $query->latest()->paginate(15)->withQueryString();
     }
 
     public function create(array $data): Doc

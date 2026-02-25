@@ -9,6 +9,7 @@ use App\Models\Doc;
 use App\Models\Project;
 use App\Services\DocService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -17,13 +18,14 @@ class DocController extends Controller
 {
     public function __construct(private readonly DocService $docService) {}
 
-    public function index(): Response
+    public function index(Request $request): Response
     {
         Gate::authorize('viewAny', Doc::class);
 
         return Inertia::render('docs/index', [
-            'docs' => DocResource::collection($this->docService->listForUser(request()->user())),
+            'docs' => DocResource::collection($this->docService->listForUser($request->user(), $request->only(['search']))),
             'projects' => Project::query()->select('id', 'name')->orderBy('name')->get(),
+            'filters' => $request->only(['search']),
         ]);
     }
 
@@ -49,16 +51,16 @@ class DocController extends Controller
     {
         Gate::authorize('update', $doc);
 
-        $this->docService->update($doc, $request->validated());
+        $this->docService->update($request->user(), $doc, $request->validated());
 
         return back()->with('success', 'Document updated successfully.');
     }
 
-    public function destroy(Doc $doc): RedirectResponse
+    public function destroy(Request $request, Doc $doc): RedirectResponse
     {
         Gate::authorize('delete', $doc);
 
-        $this->docService->delete($doc);
+        $this->docService->delete($request->user(), $doc);
 
         return to_route('docs.index')->with('success', 'Document deleted successfully.');
     }

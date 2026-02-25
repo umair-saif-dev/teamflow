@@ -9,11 +9,14 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class ProjectService
 {
-    public function __construct(private readonly ProjectRepository $projectRepository) {}
+    public function __construct(
+        private readonly ProjectRepository $projectRepository,
+        private readonly ActivityLogService $activityLogService,
+    ) {}
 
-    public function listForUser(User $user): LengthAwarePaginator
+    public function listForUser(User $user, array $filters = []): LengthAwarePaginator
     {
-        return $this->projectRepository->paginateForUser($user);
+        return $this->projectRepository->paginateForUser($user, $filters);
     }
 
     public function create(User $user, array $data): Project
@@ -25,10 +28,12 @@ class ProjectService
 
         $this->projectRepository->syncMembers($project, [$user->id, ...($data['member_ids'] ?? [])]);
 
+        $this->activityLogService->log($user, 'project.created', 'Created project '.$project->name, $project);
+
         return $project->load(['owner:id,name', 'members:id,name']);
     }
 
-    public function update(Project $project, array $data): Project
+    public function update(User $user, Project $project, array $data): Project
     {
         $updatedProject = $this->projectRepository->update($project, $data);
 
@@ -37,11 +42,14 @@ class ProjectService
             $this->projectRepository->syncMembers($updatedProject, $memberIds);
         }
 
+        $this->activityLogService->log($user, 'project.updated', 'Updated project '.$updatedProject->name, $updatedProject);
+
         return $updatedProject->load(['owner:id,name', 'members:id,name']);
     }
 
-    public function delete(Project $project): void
+    public function delete(User $user, Project $project): void
     {
+        $this->activityLogService->log($user, 'project.deleted', 'Deleted project '.$project->name, $project);
         $this->projectRepository->delete($project);
     }
 }

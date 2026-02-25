@@ -18,13 +18,14 @@ class TaskController extends Controller
 {
     public function __construct(private readonly TaskService $taskService) {}
 
-    public function index(): Response
+    public function index(Request $request): Response
     {
         Gate::authorize('viewAny', Task::class);
 
         return Inertia::render('tasks/index', [
-            'tasks' => TaskResource::collection($this->taskService->listForUser(request()->user())),
+            'tasks' => TaskResource::collection($this->taskService->listForUser($request->user(), $request->only(['search', 'status']))),
             'projects' => Project::query()->select('id', 'name')->orderBy('name')->get(),
+            'filters' => $request->only(['search', 'status']),
         ]);
     }
 
@@ -32,7 +33,7 @@ class TaskController extends Controller
     {
         Gate::authorize('create', Task::class);
 
-        $this->taskService->create($request->validated());
+        $this->taskService->create($request->user(), $request->validated());
 
         return back()->with('success', 'Task created successfully.');
     }
@@ -41,16 +42,16 @@ class TaskController extends Controller
     {
         Gate::authorize('update', $task);
 
-        $this->taskService->update($task, $request->validated());
+        $this->taskService->update($request->user(), $task, $request->validated());
 
         return back()->with('success', 'Task updated successfully.');
     }
 
-    public function destroy(Task $task): RedirectResponse
+    public function destroy(Request $request, Task $task): RedirectResponse
     {
         Gate::authorize('delete', $task);
 
-        $this->taskService->delete($task);
+        $this->taskService->delete($request->user(), $task);
 
         return back()->with('success', 'Task deleted successfully.');
     }
@@ -63,7 +64,7 @@ class TaskController extends Controller
             'status' => ['required', 'in:todo,in_progress,review,done'],
         ]);
 
-        $this->taskService->updateStatus($task, $validated['status']);
+        $this->taskService->updateStatus($request->user(), $task, $validated['status']);
 
         return back()->with('success', 'Task status updated successfully.');
     }

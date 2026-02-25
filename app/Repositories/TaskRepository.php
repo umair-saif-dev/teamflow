@@ -8,7 +8,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class TaskRepository
 {
-    public function paginateForUser(User $user): LengthAwarePaginator
+    public function paginateForUser(User $user, array $filters = []): LengthAwarePaginator
     {
         $query = Task::query()->with(['project:id,name,owner_id', 'assignee:id,name,email']);
 
@@ -20,7 +20,16 @@ class TaskRepository
             });
         }
 
-        return $query->latest()->paginate(15);
+        if (! empty($filters['search'])) {
+            $search = strtolower((string) $filters['search']);
+            $query->whereRaw('LOWER(title) like ?', ["%{$search}%"]);
+        }
+
+        if (! empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        return $query->latest()->paginate(15)->withQueryString();
     }
 
     public function create(array $data): Task

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocController;
+use App\Http\Controllers\Notifications\NotificationController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\UserController;
@@ -24,6 +25,9 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
 
     Route::resource('docs', DocController::class)->except(['create', 'edit']);
     Route::get('users', [UserController::class, 'index'])->name('users.index');
+
+    Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::patch('notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
 });
 
 require __DIR__.'/settings.php';

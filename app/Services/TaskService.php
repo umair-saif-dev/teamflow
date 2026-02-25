@@ -5,19 +5,23 @@ namespace App\Services;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
+use App\Notifications\TaskUpdatedNotification;
 use App\Repositories\TaskRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class TaskService
 {
-    public function __construct(private readonly TaskRepository $taskRepository) {}
+    public function __construct(
+        private readonly TaskRepository $taskRepository,
+        private readonly ActivityLogService $activityLogService,
+    ) {}
 
-    public function listForUser(User $user): LengthAwarePaginator
+    public function listForUser(User $user, array $filters = []): LengthAwarePaginator
     {
-        return $this->taskRepository->paginateForUser($user);
+        return $this->taskRepository->paginateForUser($user, $filters);
     }
 
-    public function create(array $data): Task
+    public function create(User $user, array $data): Task
     {
         $project = Project::query()->findOrFail($data['project_id']);
 
@@ -25,21 +29,37 @@ class TaskService
             $data['assigned_to'] = null;
         }
 
-        return $this->taskRepository->create($data)->load(['project:id,name', 'assignee:id,name,email']);
+        $task = $this->taskRepository->create($data)->load(['project:id,name', 'assignee:id,name,email']);
+
+        $this->activityLogService->log($user, 'task.created', 'Created task '.$task->title, $task);
+        $task->assignee?->notify(new TaskUpdatedNotification($task, 'created'));
+
+        return $task;
     }
 
-    public function update(Task $task, array $data): Task
+    public function update(User $user, Task $task, array $data): Task
     {
-        return $this->taskRepository->update($task, $data)->load(['project:id,name', 'assignee:id,name,email']);
+        $updated = $this->taskRepository->update($task, $data)->load(['project:id,name', 'assignee:id,name,email']);
+
+        $this->activityLogService->log($user, 'task.updated', 'Updated task '.$updated->title, $updated);
+        $updated->assignee?->notify(new TaskUpdatedNotification($updated, 'updated'));
+
+        return $updated;
     }
 
-    public function updateStatus(Task $task, string $status): Task
+    public function updateStatus(User $user, Task $task, string $status): Task
     {
-        return $this->taskRepository->update($task, ['status' => $status])->load(['project:id,name', 'assignee:id,name,email']);
+        $updated = $this->taskRepository->update($task, ['status' => $status])->load(['project:id,name', 'assignee:id,name,email']);
+
+        $this->activityLogService->log($user, 'task.status_updated', 'Changed task status to '.$status, $updated, ['status' => $status]);
+        $updated->assignee?->notify(new TaskUpdatedNotification($updated, 'status_updated'));
+
+        return $updated;
     }
 
-    public function delete(Task $task): void
+    public function delete(User $user, Task $task): void
     {
+        $this->activityLogService->log($user, 'task.deleted', 'Deleted task '.$task->title, $task);
         $this->taskRepository->delete($task);
     }
 }

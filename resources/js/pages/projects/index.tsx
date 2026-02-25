@@ -1,6 +1,6 @@
 import { useProjects } from '@/hooks/use-projects';
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 
 type Project = {
     id: number;
@@ -12,7 +12,7 @@ type PaginatedProjects = {
     data: Project[];
 };
 
-export default function ProjectsIndex({ projects }: { projects: PaginatedProjects }) {
+export default function ProjectsIndex({ projects, filters }: { projects: PaginatedProjects; filters?: { search?: string } }) {
     const { all, total } = useProjects(projects?.data ?? []);
 
     return (
@@ -21,9 +21,17 @@ export default function ProjectsIndex({ projects }: { projects: PaginatedProject
             <div className="space-y-4 p-4">
                 <div className="flex items-center justify-between">
                     <h1 className="text-2xl font-semibold">Projects ({total})</h1>
-                    <Link href="/projects/create" className="rounded-md bg-primary px-3 py-2 text-primary-foreground">
+                    <div className="flex items-center gap-2">
+                        <input
+                            defaultValue={filters?.search ?? ''}
+                            placeholder="Search projects"
+                            className="rounded-md border px-3 py-2"
+                            onChange={(event) => router.get('/projects', { search: event.target.value }, { preserveState: true, replace: true })}
+                        />
+                        <Link href="/projects/create" className="rounded-md bg-primary px-3 py-2 text-primary-foreground">
                         New Project
-                    </Link>
+                        </Link>
+                    </div>
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-2">

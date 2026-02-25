@@ -17,7 +17,7 @@ type Project = { id: number; name: string };
 
 const columns: Array<Task['status']> = ['todo', 'in_progress', 'review', 'done'];
 
-export default function TasksIndex({ tasks, projects }: { tasks: { data: Task[] }; projects: Project[] }) {
+export default function TasksIndex({ tasks, projects, filters }: { tasks: { data: Task[] }; projects: Project[]; filters?: { search?: string; status?: string } }) {
     const { byStatus } = useTasks(tasks?.data ?? []);
     const [search, setSearch] = useState('');
 
@@ -51,12 +51,29 @@ export default function TasksIndex({ tasks, projects }: { tasks: { data: Task[] 
             <div className="space-y-6 p-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                     <h1 className="text-2xl font-semibold">Task Board</h1>
-                    <input
-                        className="rounded-md border px-3 py-2"
-                        placeholder="Search tasks"
-                        value={search}
-                        onChange={(event) => setSearch(event.target.value)}
-                    />
+                    <div className="flex items-center gap-2">
+                        <input
+                            className="rounded-md border px-3 py-2"
+                            placeholder="Search tasks"
+                            value={search}
+                            onChange={(event) => {
+                                const value = event.target.value;
+                                setSearch(value);
+                                router.get('/tasks', { search: value, status: filters?.status ?? '' }, { preserveState: true, replace: true });
+                            }}
+                        />
+                        <select
+                            className="rounded-md border px-3 py-2"
+                            value={filters?.status ?? ''}
+                            onChange={(event) => router.get('/tasks', { search: filters?.search ?? '', status: event.target.value }, { preserveState: true, replace: true })}
+                        >
+                            <option value="">All status</option>
+                            <option value="todo">Todo</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="review">Review</option>
+                            <option value="done">Done</option>
+                        </select>
+                    </div>
                 </div>
 
                 <form

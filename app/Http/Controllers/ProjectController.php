@@ -9,6 +9,7 @@ use App\Models\Project;
 use App\Models\User;
 use App\Services\ProjectService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -17,12 +18,13 @@ class ProjectController extends Controller
 {
     public function __construct(private readonly ProjectService $projectService) {}
 
-    public function index(): Response
+    public function index(Request $request): Response
     {
         Gate::authorize('viewAny', Project::class);
 
         return Inertia::render('projects/index', [
-            'projects' => ProjectResource::collection($this->projectService->listForUser(request()->user())),
+            'projects' => ProjectResource::collection($this->projectService->listForUser($request->user(), $request->only(['search']))),
+            'filters' => $request->only(['search']),
         ]);
     }
 
@@ -67,16 +69,16 @@ class ProjectController extends Controller
     {
         Gate::authorize('update', $project);
 
-        $this->projectService->update($project, $request->validated());
+        $this->projectService->update($request->user(), $project, $request->validated());
 
         return to_route('projects.show', $project)->with('success', 'Project updated successfully.');
     }
 
-    public function destroy(Project $project): RedirectResponse
+    public function destroy(Request $request, Project $project): RedirectResponse
     {
         Gate::authorize('delete', $project);
 
-        $this->projectService->delete($project);
+        $this->projectService->delete($request->user(), $project);
 
         return to_route('projects.index')->with('success', 'Project deleted successfully.');
     }
